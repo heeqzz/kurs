@@ -1,0 +1,161 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <locale.h>
+int** createG1(int size) {
+    int** G = (int**)malloc(size * sizeof(int*));
+    for (int i = 0; i < size; i++) {
+        G[i] = (int*)malloc(size * sizeof(int));
+    }
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            G[i][j] = rand() % 2;
+            if (i == j) {
+                G[i][j] = 0;
+            }
+            /*else {
+                G[i][j] = G[j][i] = 1;
+            }*/
+        }
+    }
+    return G;
+}
+int** createG2(int size) {
+    int** G = (int**)malloc(size * sizeof(int*));
+    for (int i = 0; i < size; i++) {
+        G[i] = (int*)malloc(size * sizeof(int));
+    }
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            G[i][j] = rand() % 2;
+            if (i == j) {
+                G[i][j] = 0;
+            }
+            /*else {
+                G[i][j] = G[j][i] = 1;
+            }*/
+        }
+    }
+    return G;
+}
+void printG(int** G, int size) {
+    for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+            printf("%d ", G[i][j]);
+        }
+        printf("\n");
+    }
+    return;
+}
+
+void Euler(int** graph, int v, int n, int* degree) {
+    for (int u = 0; u < n; u++) {
+        if (graph[v][u] == 1) {
+            printf("Перешли из вершины %d в вершину %d\n", v + 1, u + 1);
+            graph[v][u] = graph[u][v] = 0;
+            degree[v]--;
+            degree[u]--;
+            printG(graph, n);
+            Euler(graph, u, n, degree);
+        }
+    }
+}
+
+int main() {
+    setlocale(LC_ALL, "Rus");
+    
+    int n, start, search=1;
+    int* degree = (int*)malloc(n * sizeof(int));
+    int** graph;
+    while(search!=0){
+        printf("0.Выход\n");
+        printf("1.Сгенерировать матрицу с направленными путями\n");
+        printf("2.Сгенерировать матрицу с ненаправленными путями\n");
+        printf("3.Ввести матрицу из файла\n");
+        printf("4.Ввести матрицу с направленными путями вручную\n");
+        printf("5.Ввести матрицу с ненаправленными путями вручную\n");
+        printf("6.Обход\n");
+        printf("Выберите пункт меню:\n");
+        scanf("%d",&search);
+        switch(search){
+            case 0:{
+                printf("До свидания!\n");
+                break;
+            }
+            case 1:{
+                printf("Пути направленные\n");
+                printf("Введите размер матрицы: \n");
+                scanf("%d", &n);
+                graph = createG1(n);
+                printG(graph,n);
+                break;
+            }
+            case 2:{
+                printf("Пути ненаправленные\n");
+                printf("Введите размер матрицы: \n");
+                scanf("%d", &n);
+                graph = createG2(n);
+                printG(graph,n);
+                break;
+            }
+            case 3:{
+                printf("Введите названия файла из которого надо сгрузить матрицу\n");
+                break;
+            }
+            case 4:{
+                int timevar;
+                printf("Введите размер матрицы\n");
+                scanf("%d", &n);
+                graph = (int**)malloc(n * sizeof(int*));
+                for (int i = 0; i < n; i++) {
+                    graph[i] = (int*)malloc(n * sizeof(int));
+                }
+                for(int i=0;i<n;i++){
+                    for(int j=0;j<n;j++){
+                        printf("Введите 1/0 для G[%d][%d]\n",i,j);
+                        scanf("%d", &timevar);
+                        if(timevar==1||timevar==0){
+                             graph[i][j]=timevar;
+                        }
+                        else{
+                            printf("error(1/0)\n");
+                            if(i!=0&&j!=0){
+                                i=0;
+                                j=-1;
+                            }
+                            else if(i!=0&&j==0){
+                                i=0;
+                            }
+                            else if(i==0&&j!=0){
+                                j=-1;
+                            }
+                            else if(i==0&&j==0){
+                                i=0;
+                                j=-1;
+                            }
+                        }
+                    }
+                }
+                printG(graph,n);
+                break;
+            }
+            case 5:{
+                
+                break;
+            }
+            case 6:{
+                printf("Введите номер вершины, с которой начнется обход (1-%d): \n", n);
+                scanf("%d", &start);
+                start = start - 1;
+                printf("Эйлеров цикл:\n");
+                Euler(graph, start, n, degree);
+                break;
+            }
+            default:{
+               printf("Неправильный выбор:\n"); 
+               break;
+            }
+        }
+    }
+    return 0;
+}
