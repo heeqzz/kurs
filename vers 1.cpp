@@ -1,4 +1,7 @@
-﻿#include <stdio.h>
+﻿//добавить начальный экран, кто делал, какая тема+
+//Добавить пункт 6 чтобы изменить граф на эйлеров,+
+//пункт 7 изменить чтобы было сохранение результата самого обхода.+
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <locale.h>
@@ -24,12 +27,9 @@ int** createG2(int size) {
     }
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < size; j++) {
-            G[i][j] = rand() % 2;
+            G[i][j] = G[j][i] = rand() % 2;
             if (i == j) {
                 G[i][j] = 0;
-            }
-            else {
-                G[i][j] = G[j][i] = 1;
             }
         }
     }
@@ -44,20 +44,18 @@ void printG(int** G, int size) {
     }
     return;
 }
-
-void Euler(int** graph, int v, int n, int* degree) {
+void Euler(int** graph, int v, int n, int* degree, int* result, int* index) {
     for (int u = 0; u < n; u++) {
         if (graph[v][u] == 1) {
-            printf("Перешли из вершины %d в вершину %d\n", v + 1, u + 1);
             graph[v][u] = graph[u][v] = 0;
             degree[v]--;
             degree[u]--;
-            printG(graph, n);
-            Euler(graph, u, n, degree);
+            Euler(graph, u, n, degree, result, index);
         }
     }
+    result[(*index)++] = v + 1; // Сохраняем вершину в результат
 }
-void dfs(int v, int *visited, int **graph, int n){
+void dfs(int v, int* visited, int** graph, int n) {
     visited[v] = 1; // Помечаем вершину как посещенную
     for (int u = 0; u < n; u++) {
         if (graph[v][u] == 1 && !visited[u]) {
@@ -67,9 +65,15 @@ void dfs(int v, int *visited, int **graph, int n){
 }
 int main() {
     setlocale(LC_ALL, "Rus");
-    int n=5, start, search = 1;
+    printf("Курсовая работа\nПо дисциплине ЛиОАВИЗ\nНа тему: Реализация Эйлерова цикла\nВыполнил студент 23ВВВ2: Герасимов В. Р.\nПриняла: Юрова О. В.\n\n");
+    system("PAUSE");
+    system("cls");
+    int n = 5, start, search = 1;
     int* degree = (int*)malloc(n * sizeof(int));
     int** graph = NULL;
+    int** graph2 = NULL;
+    int* result = (int*)malloc(n * n * sizeof(int)); // Массив для хранения результата обхода
+    int index = 0; // Индекс для записи в массив результата
     while (search != 0) {
         printf("0.Выход\n");
         printf("1.Сгенерировать ориентированную матрицу\n");
@@ -77,7 +81,8 @@ int main() {
         printf("3.Ввести матрицу из файла\n");
         printf("4.Ввести матрицу вручную\n");
         printf("5.Обход\n");
-        printf("6.Сохранить матрицу в файл\n");
+        printf("6.Изменить матрицу\n");
+        printf("7.Сохранить результат в файл\n");
         printf("Выберите пункт меню:\n");
         scanf_s("%d", &search);
         switch (search) {
@@ -89,6 +94,10 @@ int main() {
             printf("Ориентированная матрица\n");
             printf("Введите размер матрицы: \n");
             scanf_s("%d", &n);
+            if(n<0){
+                printf("Недопустимый размер\n");
+                break;
+            }
             graph = (int**)malloc(n * sizeof(int*));
             for (int i = 0; i < n; i++) {
                 graph[i] = (int*)malloc(n * sizeof(int));
@@ -101,6 +110,10 @@ int main() {
             printf("Неориентированная матрица\n");
             printf("Введите размер матрицы: \n");
             scanf_s("%d", &n);
+            if (n < 0) {
+                printf("Недопустимый размер\n");
+                break;
+            }
             graph = (int**)malloc(n * sizeof(int*));
             for (int i = 0; i < n; i++) {
                 graph[i] = (int*)malloc(n * sizeof(int));
@@ -120,18 +133,15 @@ int main() {
                 break;
             }
             fscanf_s(file, "%d", &n);
-
             graph = (int**)malloc(n * sizeof(int*));
             for (int i = 0; i < n; i++) {
                 graph[i] = (int*)malloc(n * sizeof(int));
             }
-
             for (int i = 0; i < n; i++) {
                 for (int j = 0; j < n; j++) {
                     fscanf_s(file, "%d", &graph[i][j]);
                 }
             }
-
             fclose(file);
             printG(graph, n);
             break;
@@ -140,6 +150,10 @@ int main() {
             int timevar;
             printf("Введите размер матрицы\n");
             scanf_s("%d", &n);
+            if (n < 0) {
+                printf("Недопустимый размер\n");
+                    break;
+            }
             graph = (int**)malloc(n * sizeof(int*));
             for (int i = 0; i < n; i++) {
                 graph[i] = (int*)malloc(n * sizeof(int));
@@ -152,21 +166,10 @@ int main() {
                         graph[i][j] = timevar;
                     }
                     else {
-                        printf("error(1/0)\n");
-                        if (i != 0 && j != 0) {
-                            i = 0;
-                            j = -1;
-                        }
-                        else if (i != 0 && j == 0) {
-                            i = 0;
-                        }
-                        else if (i == 0 && j != 0) {
-                            j = -1;
-                        }
-                        else if (i == 0 && j == 0) {
-                            i = 0;
-                            j = -1;
-                        }
+                        printf("Ошибка, введите предложенные символы (1/0)\n");
+                        i = 0;
+                        j = -1;
+   
                     }
                 }
             }
@@ -174,10 +177,26 @@ int main() {
             break;
         }
         case 5: {
-            int *visited = (int*)malloc(n * sizeof(int*));
-            
+            if (graph == NULL) {
+                printf("Ошибка: матрица не существует. Сначала создайте или загрузите матрицу.\n");
+                break;
+            }
+            int* visited = (int*)malloc(n * sizeof(int));
+            graph2 = (int**)malloc(n * sizeof(int*));
+            for (int i = 0; i < n; i++) {
+                graph2[i] = (int*)malloc(n * sizeof(int));
+            }
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    graph2[i][j] = graph[i][j];
+                }
+            }
             printf("Введите номер вершины, с которой начнется обход (1-%d): \n", n);
             scanf_s("%d", &start);
+            if (start > n) {
+                printf("Неправильный номер вершины\n");
+                break;
+            }
             start = start - 1;
 
             // Проверка, что все вершины имеют четные степени
@@ -189,24 +208,27 @@ int main() {
                 }
                 if (degree[i] % 2 != 0) {
                     isEulerian = 0; // Если у любой вершины нечетная степень
+                    printf("Нечетная степень\n");
                     break;
                 }
             }
 
             // Проверка, что граф связный
             if (isEulerian) {
-                
-                for (int i = 0; i < n; i++) { 
-                    visited[i] = 0; 
+                for (int i = 0; i < n; i++) {
+                    visited[i] = 0;
                 }
-
-                
                 dfs(start, visited, graph, n); // Начинаем DFS с заданной стартовой вершины
-
                 // Проверка, что все вершины с ненулевой степенью были посещены
                 for (int i = 0; i < n; i++) {
                     if (degree[i] > 0 && !visited[i]) {
+                        printf("Вершина не была посещена\n");
                         isEulerian = 0; // Если любая вершина с ребрами не была посещена
+                        break;
+                    }
+                    else if (degree[i] == 0) {
+                        printf("Нулевая степень\n");
+                        isEulerian = 0; // Если у вершины нулевая степень, значит если мы в нее попадем,то выйти не сможем.
                         break;
                     }
                 }
@@ -215,11 +237,18 @@ int main() {
             // Если граф Эйлеров, выполняем обход Эйлера
             if (isEulerian) {
                 printf("Эйлеров цикл:\n");
-                Euler(graph, start, n, degree);
+                Euler(graph, start, n, degree, result, &index);
+                for (int i = index - 1; i >= 0; i--) { // Выводим результат в обратном порядке
+                    printf("%d ", result[i]);
+                }
+                printf("\n");
             }
             else {
                 printf("Граф не имеет Эйлерова цикла.\n");
             }
+
+            free(visited);
+
             break;
         }
         case 6: {
@@ -228,26 +257,107 @@ int main() {
                 break;
             }
 
-            printf("Введите название файла для сохранения матрицы:\n");
+            int v1, v2;
+            printf("Текущая матрица смежности:\n");
+            printG(graph, n);
+
+            printf("Введите номера двух вершин (1-%d), между которыми нужно изменить ребро (добавить или удалить):\n", n);
+            printf("Введите первую вершину: ");
+            scanf_s("%d", &v1);
+            printf("Введите вторую вершину: ");
+            scanf_s("%d", &v2);
+
+            // Преобразуем номера вершин в индексы массива
+            v1 -= 1;
+            v2 -= 1;
+
+            // Проверяем корректность ввода
+            if (v1 < 0 || v1 >= n || v2 < 0 || v2 >= n) {
+                printf("Ошибка: некорректные номера вершин.\n");
+                break;
+            }
+
+            // Изменяем ребро: если оно есть, удаляем; если его нет, добавляем
+            if (graph[v1][v2] == 1) {
+                graph[v1][v2] = 0;
+                graph[v2][v1] = 0;
+                printf("Ребро между вершинами %d и %d удалено.\n", v1 + 1, v2 + 1);
+            }
+            else {
+                graph[v1][v2] = 1;
+                graph[v2][v1] = 1;
+                printf("Ребро между вершинами %d и %d добавлено.\n", v1 + 1, v2 + 1);
+            }
+
+            // Пересчитываем степени вершин
+            for (int i = 0; i < n; i++) {
+                degree[i] = 0;
+                for (int j = 0; j < n; j++) {
+                    degree[i] += graph[i][j];
+                }
+            }
+
+            // Выводим обновлённую матрицу смежности
+            printf("Обновлённая матрица смежности:\n");
+            printG(graph, n);
+
+            // Проверяем, стали ли все степени чётными
+            int isEulerian = 1;
+            for (int i = 0; i < n; i++) {
+                if (degree[i] % 2 != 0) {
+                    isEulerian = 0;
+                    printf("Вершина %d имеет нечётную степень: %d\n", i + 1, degree[i]);
+                }
+            }
+
+            if (isEulerian) {
+                printf("Теперь граф может быть Эйлеровым. Все вершины имеют чётные степени.\n");
+            }
+            else {
+                printf("Граф всё ещё не является Эйлеровым. Исправьте степени вершин.\n");
+            }
+
+            break;
+        }
+        case 7: {
+            if (graph == NULL) {
+                printf("Ошибка: матрица не существует. Сначала создайте или загрузите матрицу.\n");
+                break;
+            }
+            printf("Введите название файла для сохранения матрицы и результата обхода:\n");
             char filename[100];
             scanf_s("%s", filename, (unsigned)_countof(filename));
-
             FILE* file;
             fopen_s(&file, filename, "w");
             if (file == NULL) {
                 printf("Ошибка: не удалось открыть файл для записи.\n");
                 break;
             }
-            fprintf(file, "%d\n", n);
+
+            // Сохраняем размер матрицы
+            fprintf(file, "Размер матрицы: %d\n", n);
+
+            // Сохраняем матрицу
+            fprintf(file, "Матрица:\n");
             for (int i = 0; i < n; i++) {
                 for (int j = 0; j < n; j++) {
-                    fprintf(file, "%d ", graph[i][j]);
+                    fprintf(file, "%d ", graph2[i][j]);
                 }
                 fprintf(file, "\n");
             }
+            if (result == NULL) {
+                printf("Ошибка: не был совершен обход.\n");
+                break;
+            }
+            // Сохраняем результат обхода
+            fprintf(file, "Результат обхода:\n");
+            for (int i = index - 1; i >= 0; i--) { // Записываем результат в обратном порядке
+                fprintf(file, "%d ", result[i]);
+            }
+            fprintf(file, "\n");
 
             fclose(file);
-            printf("Матрица успешно сохранена в файл '%s'.\n", filename);
+            printf("Матрица и результат обхода успешно сохранены в файл '%s'.\n", filename);
             break;
         }
         default: {
