@@ -1,6 +1,9 @@
 ﻿//добавить начальный экран, кто делал, какая тема+
 //Добавить пункт 6 чтобы изменить граф на эйлеров,+
 //пункт 7 изменить чтобы было сохранение результата самого обхода.+
+//изменить обход для опр графа
+//как считается степень у направленного массива
+//почему используем адрес 
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -55,6 +58,24 @@ void Euler(int** graph, int v, int n, int* degree, int* result, int* index) {
     }
     result[(*index)++] = v + 1; // Сохраняем вершину в результат
 }
+void Euler2(int** graph, int v, int n, int* degree, int* result, int* index) {
+    for (int u = 0; u < n; u++) {
+        if (graph[v][u] == 1) {
+            ///*if (graph[v][u] == graph[u][v]) {
+            //    graph[v][u] = graph[u][v] = 0;
+            //    
+            //}
+            //else {
+            //    graph[v][u] = 0;
+            //}*/
+            graph[v][u] = 0;
+            degree[v]--;
+            //degree[u]--;
+            Euler(graph, u, n, degree, result, index);
+        }
+    }
+    result[(*index)++] = v + 1; // Сохраняем вершину в результат
+}
 void dfs(int v, int* visited, int** graph, int n) {
     visited[v] = 1; // Помечаем вершину как посещенную
     for (int u = 0; u < n; u++) {
@@ -65,10 +86,10 @@ void dfs(int v, int* visited, int** graph, int n) {
 }
 int main() {
     setlocale(LC_ALL, "Rus");
-    printf("Курсовая работа\nПо дисциплине ЛиОАВИЗ\nНа тему: Реализация Эйлерова цикла\nВыполнил студент 23ВВВ2: Герасимов В. Р.\nПриняла: Юрова О. В.\n\n");
+    printf("Курсовая работа\nПо дисциплине ЛиОАВИЗ\nНа тему: Реализация Эйлерова цикла\nВыполнил студент 23ВВВ2: Герасимов В. Р.\nПриняли: Юрова О. В., Митрихин М. А.\n\n");
     system("PAUSE");
     system("cls");
-    int n = 5, start, search = 1;
+    int n = 5, start, search = 1, number=0 ;
     int* degree = (int*)malloc(n * sizeof(int));
     int** graph = NULL;
     int** graph2 = NULL;
@@ -104,6 +125,7 @@ int main() {
             }
             graph = createG1(n);
             printG(graph, n);
+            number = 1;
             break;
         }
         case 2: {
@@ -203,14 +225,24 @@ int main() {
             int isEulerian = 1; // Флаг для проверки, является ли граф Эйлеровым
             for (int i = 0; i < n; i++) {
                 degree[i] = 0; // Инициализация массива степеней
-                for (int j = 0; j < n; j++) {
-                    degree[i] += graph[i][j]; // Вычисление степени вершины i
+                if (number == 1) {
+                    for (int j = 0; j < n; j++) {
+                        degree[i] += graph[i][j] + graph[j][i];
+                    }
                 }
+                else {
+                    for (int j = 0; j < n; j++) {
+                        degree[i] += graph[i][j]; // Вычисление степени вершины i
+                    }
+                }
+                
                 if (degree[i] % 2 != 0) {
                     isEulerian = 0; // Если у любой вершины нечетная степень
                     printf("Нечетная степень\n");
                     break;
                 }
+
+
             }
 
             // Проверка, что граф связный
@@ -237,7 +269,13 @@ int main() {
             // Если граф Эйлеров, выполняем обход Эйлера
             if (isEulerian) {
                 printf("Эйлеров цикл:\n");
-                Euler(graph, start, n, degree, result, &index);
+                if (number == 1) {
+                    Euler2(graph, start, n, degree, result, &index);
+                }
+                else {
+                    Euler(graph, start, n, degree, result, &index);
+                }
+                
                 for (int i = index - 1; i >= 0; i--) { // Выводим результат в обратном порядке
                     printf("%d ", result[i]);
                 }
